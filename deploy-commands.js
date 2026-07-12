@@ -1,5 +1,5 @@
 const { REST, Routes } = require('discord.js');
-require('dotenv').config(); // loads your.env file if you have one locally
+require('dotenv').config();
 
 const commands = {
  name: 'getinfo',
