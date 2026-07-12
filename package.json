@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "discord.js": "^14.14.1",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.6.1"
   }
 }
