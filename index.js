@@ -1,6 +1,4 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-require('dotenv').config();
-
 const client = new Client({ intents: GatewayIntentBits.Guilds });
 
 client.on('ready', () => {
@@ -23,7 +21,6 @@ client.on('interactionCreate', async interaction => {
  if (options.getSubcommand() === 'view') {
  const target = options.getUser('user');
  await interaction.reply(`📜 Fetching logs for **${target.tag}**... (database setup coming soon)`);
- // TODO: Add database lookup
  }
  break;
  }
@@ -32,7 +29,6 @@ client.on('interactionCreate', async interaction => {
  if (options.getSubcommand() === 'manage') {
  const action = options.getString('action');
  await interaction.reply(`⏱️ Shift **${action}** logged!`);
- // TODO: Add shift tracking logic
  }
  break;
  }
@@ -55,7 +51,6 @@ client.on('interactionCreate', async interaction => {
  if (options.getSubcommand() === 'command') {
  const cmd = options.getString('command_text');
  await interaction.reply(`⚡ Running ER:LC command: \`${cmd}\`\n*(ER:LC API integration coming soon)*`);
- // TODO: Connect to ER:LC API
  }
  break;
  }
