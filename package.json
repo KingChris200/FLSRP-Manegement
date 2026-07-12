@@ -1,12 +1,13 @@
 {
- "name": "flsrp-management-bot",
- "version": "1.0.0",
- "description": "FLSRP Management Discord Bot",
- "main": "index.js",
- "scripts": {
- "start": "node index.js"
- },
- "dependencies": {
- "discord.js": "^14.14.1"
- }
+  "name": "flsrp-management-bot",
+  "version": "1.0.0",
+  "description": "FLSRP Management Discord Bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.7"
+  }
 }
