@@ -5,24 +5,6 @@ const {
     ChannelType,
 } = require('discord.js');
 
-const peacetimeStatuses = {
-    enabled: {
-        label: 'Enabled',
-        emoji: '🕊️',
-        color: 'Aqua',
-        description:
-            'Peacetime is now enabled. All players must avoid criminal activity, pursuits, shootouts, and other disruptive roleplay until further notice.',
-    },
-
-    disabled: {
-        label: 'Disabled',
-        emoji: '🚨',
-        color: 'Red',
-        description:
-            'Peacetime is now disabled. Normal roleplay may resume while following all server rules and priority restrictions.',
-    },
-};
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('peacetime')
@@ -32,7 +14,7 @@ module.exports = {
         .addChannelOption(option =>
             option
                 .setName('channel')
-                .setDescription('Where the peacetime update should be sent.')
+                .setDescription('The channel where the update will be sent.')
                 .addChannelTypes(
                     ChannelType.GuildText,
                     ChannelType.GuildAnnouncement
@@ -43,35 +25,24 @@ module.exports = {
         .addStringOption(option =>
             option
                 .setName('status')
-                .setDescription('Choose the new peacetime status.')
-                .setRequired(true)
+                .setDescription('Enable or disable peacetime.')
                 .addChoices(
                     {
-                        name: '🕊️ Enabled',
+                        name: '🕊️ Enable',
                         value: 'enabled',
                     },
                     {
-                        name: '🚨 Disabled',
+                        name: '🚨 Disable',
                         value: 'disabled',
                     }
                 )
-        )
-
-        .addIntegerOption(option =>
-            option
-                .setName('duration')
-                .setDescription(
-                    'Optional peacetime duration in minutes.'
-                )
-                .setMinValue(1)
-                .setMaxValue(180)
-                .setRequired(false)
+                .setRequired(true)
         )
 
         .addStringOption(option =>
             option
                 .setName('reason')
-                .setDescription('Optional reason for changing peacetime.')
+                .setDescription('Optional reason for the update.')
                 .setMaxLength(1000)
                 .setRequired(false)
         )
@@ -79,82 +50,59 @@ module.exports = {
         .addRoleOption(option =>
             option
                 .setName('ping')
-                .setDescription('An optional role to notify.')
+                .setDescription('Optional role to notify.')
                 .setRequired(false)
         ),
 
     async execute(interaction) {
-        const channel =
-            interaction.options.getChannel('channel');
-
-        const status =
-            interaction.options.getString('status');
-
-        const duration =
-            interaction.options.getInteger('duration');
-
-        const reason =
-            interaction.options.getString('reason');
-
-        const pingRole =
-            interaction.options.getRole('ping');
+        const channel = interaction.options.getChannel('channel');
+        const status = interaction.options.getString('status');
+        const reason = interaction.options.getString('reason');
+        const pingRole = interaction.options.getRole('ping');
 
         if (!channel || !channel.isTextBased()) {
             return interaction.reply({
-                content: '❌ Please select a valid text channel.',
+                content: '❌ Please choose a valid text channel.',
                 ephemeral: true,
             });
         }
 
-        const selectedStatus = peacetimeStatuses[status];
-
-        if (!selectedStatus) {
-            return interaction.reply({
-                content: '❌ That peacetime status is invalid.',
-                ephemeral: true,
-            });
-        }
+        const isEnabled = status === 'enabled';
 
         const embed = new EmbedBuilder()
-            .setColor(selectedStatus.color)
+            .setColor(isEnabled ? 'Aqua' : 'Red')
             .setAuthor({
                 name: interaction.guild.name,
                 iconURL:
-                    interaction.guild.iconURL({
-                        dynamic: true,
-                    }) || undefined,
+                    interaction.guild.iconURL({ dynamic: true }) || undefined,
             })
             .setTitle(
-                `${selectedStatus.emoji} Peacetime ${selectedStatus.label}`
+                isEnabled
+                    ? '🕊️ Peacetime Enabled'
+                    : '🚨 Peacetime Disabled'
             )
-            .setDescription(selectedStatus.description)
-            .addFields({
-                name: '📡 Current Status',
-                value: selectedStatus.label,
-                inline: true,
-            })
+            .setDescription(
+                isEnabled
+                    ? 'Peacetime is now active. Criminal activity, pursuits, shootouts, and hostile roleplay are temporarily suspended.'
+                    : 'Peacetime has ended. Normal roleplay may resume while following all server rules and priority restrictions.'
+            )
+            .addFields(
+                {
+                    name: '📡 Current Status',
+                    value: isEnabled ? '🟢 Enabled' : '🔴 Disabled',
+                    inline: true,
+                },
+                {
+                    name: '👤 Updated By',
+                    value: `${interaction.user}`,
+                    inline: true,
+                }
+            )
             .setFooter({
-                text: `Updated by ${interaction.user.username}`,
-                iconURL:
-                    interaction.user.displayAvatarURL({
-                        dynamic: true,
-                    }),
+                text: 'FLSRP Management',
+                iconURL: interaction.client.user.displayAvatarURL(),
             })
             .setTimestamp();
-
-        if (duration) {
-            const endTimestamp =
-                Math.floor(Date.now() / 1000) +
-                duration * 60;
-
-            embed.addFields({
-                name: '⏱️ Duration',
-                value:
-                    `${duration} minute${duration === 1 ? '' : 's'}\n` +
-                    `Ends <t:${endTimestamp}:R>`,
-                inline: true,
-            });
-        }
 
         if (reason) {
             embed.addFields({
@@ -174,8 +122,9 @@ module.exports = {
             });
 
             await interaction.reply({
-                content:
-                    `✅ Peacetime has been **${selectedStatus.label.toLowerCase()}** in ${channel}.`,
+                content: `✅ Peacetime has been **${
+                    isEnabled ? 'enabled' : 'disabled'
+                }** in ${channel}.`,
                 ephemeral: true,
             });
         } catch (error) {
