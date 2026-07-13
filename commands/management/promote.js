@@ -5,6 +5,13 @@ const {
     ChannelType,
 } = require('discord.js');
 
+const {
+    createStaffProfile,
+    updateStaffProfile,
+    addStaffCount,
+} = require('../../handlers/databaseHandler');
+
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('promote')
@@ -67,131 +74,307 @@ module.exports = {
                 .setRequired(false)
         ),
 
+
     async execute(interaction) {
-        const channel = interaction.options.getChannel('channel');
+
+        const channel =
+            interaction.options.getChannel('channel');
+
+
         const staffMember =
             interaction.options.getUser('staff-member');
+
 
         const previousRank =
             interaction.options.getString('previous-rank');
 
+
         const newRank =
             interaction.options.getString('new-rank');
+
 
         const reason =
             interaction.options.getString('reason');
 
+
         const pingRole =
             interaction.options.getRole('ping');
+
 
         const banner =
             interaction.options.getString('banner');
 
+
+
         if (!channel || !channel.isTextBased()) {
+
             return interaction.reply({
-                content: '❌ Please choose a valid text channel.',
-                ephemeral: true,
+
+                content:
+                    '❌ Please choose a valid text channel.',
+
+                ephemeral:
+                    true,
+
             });
+
         }
 
+
+
         if (banner) {
+
             try {
+
                 const url = new URL(banner);
+
 
                 if (
                     url.protocol !== 'https:' &&
                     url.protocol !== 'http:'
                 ) {
+
                     throw new Error('Invalid protocol');
+
                 }
+
+
             } catch {
+
                 return interaction.reply({
+
                     content:
                         '❌ Please use a valid HTTP or HTTPS banner URL.',
-                    ephemeral: true,
+
+                    ephemeral:
+                        true,
+
                 });
+
             }
+
         }
 
+
+
+        // 🧠 Update staff database
+
+        createStaffProfile(
+            staffMember.id
+        );
+
+
+        updateStaffProfile(
+
+            staffMember.id,
+
+            {
+                rank: newRank,
+            }
+
+        );
+
+
+        addStaffCount(
+
+            staffMember.id,
+
+            'promotions'
+
+        );
+
+
+
         const embed = new EmbedBuilder()
+
             .setColor('Gold')
+
             .setAuthor({
-                name: interaction.guild.name,
+
+                name:
+                    interaction.guild.name,
+
                 iconURL:
                     interaction.guild.iconURL({
                         dynamic: true,
                     }) || undefined,
+
             })
-            .setTitle('👑 Staff Promotion')
+
+            .setTitle(
+                '👑 Staff Promotion'
+            )
+
             .setDescription(
                 `Please congratulate ${staffMember} on their promotion!`
             )
+
             .addFields(
+
                 {
-                    name: '👤 Staff Member',
-                    value: `${staffMember}`,
-                    inline: false,
+
+                    name:
+                        '👤 Staff Member',
+
+                    value:
+                        `${staffMember}`,
+
+                    inline:
+                        false,
+
                 },
+
                 {
-                    name: '📉 Previous Rank',
-                    value: previousRank,
-                    inline: true,
+
+                    name:
+                        '📉 Previous Rank',
+
+                    value:
+                        previousRank,
+
+                    inline:
+                        true,
+
                 },
+
                 {
-                    name: '📈 New Rank',
-                    value: newRank,
-                    inline: true,
+
+                    name:
+                        '📈 New Rank',
+
+                    value:
+                        newRank,
+
+                    inline:
+                        true,
+
                 },
+
                 {
-                    name: '📝 Reason',
-                    value: reason,
-                    inline: false,
+
+                    name:
+                        '📝 Reason',
+
+                    value:
+                        reason,
+
+                    inline:
+                        false,
+
                 },
+
                 {
-                    name: '🛡️ Promoted By',
-                    value: `${interaction.user}`,
-                    inline: false,
+
+                    name:
+                        '🛡️ Promoted By',
+
+                    value:
+                        `${interaction.user}`,
+
+                    inline:
+                        false,
+
                 }
+
             )
+
             .setFooter({
-                text: 'FLSRP Management • Promotion System',
+
+                text:
+                    'FLSRP Management • Promotion System',
+
                 iconURL:
                     interaction.client.user.displayAvatarURL(),
+
             })
+
             .setTimestamp();
 
+
+
         if (banner) {
+
             embed.setImage(banner);
+
         }
+
+
 
         try {
+
             await channel.send({
-                content: pingRole ? `${pingRole}` : undefined,
-                embeds: [embed],
+
+                content:
+                    pingRole
+                        ? `${pingRole}`
+                        : undefined,
+
+
+                embeds:
+                    [embed],
+
+
                 allowedMentions: {
-                    roles: pingRole ? [pingRole.id] : [],
+
+                    roles:
+                        pingRole
+                            ? [pingRole.id]
+                            : [],
+
                 },
+
             });
+
+
 
             await interaction.reply({
+
                 content:
                     `✅ Promotion announcement sent successfully in ${channel}.`,
-                ephemeral: true,
+
+                ephemeral:
+                    true,
+
             });
+
+
+
         } catch (error) {
-            console.error('Promotion command error:', error);
+
+
+            console.error(
+                'Promotion command error:',
+                error
+            );
+
 
             const response = {
+
                 content:
                     '❌ I could not send the promotion announcement. Check my channel permissions.',
-                ephemeral: true,
+
+                ephemeral:
+                    true,
+
             };
 
-            if (interaction.replied || interaction.deferred) {
+
+
+            if (
+                interaction.replied ||
+                interaction.deferred
+            ) {
+
                 await interaction.followUp(response);
+
             } else {
+
                 await interaction.reply(response);
+
             }
+
         }
+
     },
+
 };
