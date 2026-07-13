@@ -1,12 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 
+
 const databasePath = path.join(
     __dirname,
     '..',
     'database',
     'staff.json'
 );
+
 
 
 function loadDatabase() {
@@ -35,6 +37,8 @@ function loadDatabase() {
 
 
 function saveDatabase(database) {
+
+    console.log('Saving database:', database);
 
     fs.writeFileSync(
         databasePath,

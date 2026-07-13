@@ -1,1 +1,19 @@
-{}
+console.log("Database handler loaded");
+
+const fs = require('fs');
+const path = require('path');
+
+function saveDatabase(database) {
+
+    console.log("Saving database:", database);
+
+    fs.writeFileSync(
+        databasePath,
+        JSON.stringify(
+            database,
+            null,
+            4
+        )
+    );
+
+}
